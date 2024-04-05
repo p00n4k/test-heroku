@@ -47,7 +47,7 @@ app.get('/products/search/id/:id', (req, res) => {
 app.get('/products/search/name/:name', (req, res) => {
   const name = req.params.name;
   connection.query(
-    'SELECT * FROM product WHERE product_name LIKE ? LIMIT 50',
+    'SELECT * FROM product WHERE product_detail LIKE ? LIMIT 50',
     ['%' + name + '%'],
     (err, rows) => {
       if (err) {
