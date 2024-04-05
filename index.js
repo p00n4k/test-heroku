@@ -24,7 +24,9 @@ connection.connect((err) => {
   }
   console.log('Mysql Connected...');
 });
-
+app.get('/', (req, res) => {
+  res.send('Hello World');
+});
 //search by id that contains a string
 app.get('/products/search/id/:id', (req, res) => {
   const id = req.params.id;
