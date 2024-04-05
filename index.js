@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 app.get('/products/search/id/:id', (req, res) => {
   const id = req.params.id;
   connection.query(
-    'SELECT * FROM product WHERE product_id LIKE ? LIMIT 50',
+    'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
     ['%' + id + '%'],
     (err, rows) => {
       if (err) {
