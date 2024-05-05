@@ -38,6 +38,12 @@ app.get('/products/search/id/:id', (req, res) => {
         console.log('Error in query', err);
         return;
       }
+
+      // Check if rows array is empty
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
       res.send(rows);
     }
   );
@@ -54,6 +60,12 @@ app.get('/products/search/name/:name', (req, res) => {
         console.log('Error in query', err);
         return;
       }
+      // Check if rows array is empty
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
+
       res.send(rows);
     }
   );
