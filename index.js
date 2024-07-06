@@ -3,11 +3,14 @@ const mysql = require('mysql');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const cors = require('cors'); // Import the cors middleware
+
 dotenv.config();
 const app = express();
-app.use(express.json());
-app.use(morgan('dev'));
-app.use(cors()); // Use the cors middleware
+
+// Middleware
+app.use(express.json()); // Parse JSON bodies
+app.use(morgan('dev')); // HTTP request logger middleware
+app.use(cors()); // Enable CORS for all routes
 
 const connection = mysql.createConnection({
   host: process.env.host,
@@ -24,57 +27,15 @@ connection.connect((err) => {
   }
   console.log('Mysql Connected...');
 });
+
+// Routes
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
-//search by id that contains a string
+
+// Search by id that contains a string
 app.get('/products/search/id/:id', (req, res) => {
   const id = req.params.id;
-  connection.query(
-    'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
-    ['%' + id + '%'],
-    (err, rows) => {
-      if (err) {
-        console.log('Error in query', err);
-        return;
-      }
-
-      // Check if rows array is empty
-      if (rows.length === 0) {
-        res.status(204).send('No products found matching the search criteria');
-        return;
-      }
-      res.send(rows);
-    }
-  );
-});
-
-//search by name that contains a string
-app.get('/products/search/name/:name', (req, res) => {
-  const name = req.params.name;
-  connection.query(
-    'SELECT * FROM product WHERE product_detail LIKE ? LIMIT 50',
-    ['%' + name + '%'],
-    (err, rows) => {
-      if (err) {
-        console.log('Error in query', err);
-        return;
-      }
-      // Check if rows array is empty
-      if (rows.length === 0) {
-        res.status(204).send('No products found matching the search criteria');
-        return;
-      }
-
-      res.send(rows);
-    }
-  );
-});
-
-app.use(bodyParser.json());
-
-app.post('/products/search/id_body', (req, res) => {
-  const id = req.body.id; // Extract id from the request body
   connection.query(
     'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
     ['%' + id + '%'],
@@ -84,11 +45,62 @@ app.post('/products/search/id_body', (req, res) => {
         res.status(500).send('Error in query');
         return;
       }
+
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
       res.send(rows);
     }
   );
 });
 
-app.listen(process.env.PORT || port || 3000, () => {
-  console.log('Server started on port 3000');
+// Search by name that contains a string
+app.get('/products/search/name/:name', (req, res) => {
+  const name = req.params.name;
+  connection.query(
+    'SELECT * FROM product WHERE product_detail LIKE ? LIMIT 50',
+    ['%' + name + '%'],
+    (err, rows) => {
+      if (err) {
+        console.log('Error in query', err);
+        res.status(500).send('Error in query');
+        return;
+      }
+
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
+      res.send(rows);
+    }
+  );
+});
+
+// POST request to search by id from request body
+app.post('/products/search/id_body', (req, res) => {
+  const id = req.body.id;
+  connection.query(
+    'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
+    ['%' + id + '%'],
+    (err, rows) => {
+      if (err) {
+        console.log('Error in query', err);
+        res.status(500).send('Error in query');
+        return;
+      }
+
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
+      res.send(rows);
+    }
+  );
+});
+
+// Start server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
 });
