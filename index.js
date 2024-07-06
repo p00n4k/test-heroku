@@ -71,6 +71,24 @@ app.get('/products/search/name/:name', (req, res) => {
   );
 });
 
+app.use(bodyParser.json());
+
+app.post('/products/search/id', (req, res) => {
+  const id = req.body.id; // Extract id from the request body
+  connection.query(
+    'SELECT * FROM product WHERE product_id LIKE ? LIMIT 50',
+    ['%' + id + '%'],
+    (err, rows) => {
+      if (err) {
+        console.log('Error in query', err);
+        res.status(500).send('Error in query');
+        return;
+      }
+      res.send(rows);
+    }
+  );
+});
+
 app.listen(process.env.PORT || port || 3000, () => {
   console.log('Server started on port 3000');
 });
