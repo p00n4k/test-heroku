@@ -73,7 +73,7 @@ app.get('/products/search/name/:name', (req, res) => {
 
 app.use(bodyParser.json());
 
-app.post('/products/search/id', (req, res) => {
+app.post('/products/search/id_body', (req, res) => {
   const id = req.body.id; // Extract id from the request body
   connection.query(
     'SELECT * FROM product WHERE product_id LIKE ? LIMIT 50',
