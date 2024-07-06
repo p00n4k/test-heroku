@@ -76,7 +76,7 @@ app.use(bodyParser.json());
 app.post('/products/search/id_body', (req, res) => {
   const id = req.body.id; // Extract id from the request body
   connection.query(
-    'SELECT * FROM product WHERE product_id LIKE ? LIMIT 50',
+    'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
     ['%' + id + '%'],
     (err, rows) => {
       if (err) {
