@@ -29,7 +29,7 @@ connection.connect((err) => {
 });
 
 app.post('/products/search', (req, res) => {
-  const { id, name, page = 1, limit = 10 } = req.body;
+  const { id, name, page = 1, limit = 50 } = req.body;
   const offset = (page - 1) * limit;
 
   connection.query(
