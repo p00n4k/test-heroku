@@ -99,6 +99,50 @@ app.post('/products/search/id_body', (req, res) => {
   );
 });
 
+app.post('/products/search', (req, res) => {
+  const { id, name } = req.body;
+
+  // Validate input
+  if (!id && !name) {
+    return res
+      .status(400)
+      .json({ error: 'At least one of "id" or "name" is required' });
+  }
+
+  // Build the SQL query dynamically
+  const conditions = [];
+  const params = [];
+
+  if (id) {
+    conditions.push('product_stock_id LIKE ?');
+    params.push(`%${id}%`);
+  }
+  if (name) {
+    conditions.push('product_detail LIKE ?');
+    params.push(`%${name}%`);
+  }
+
+  const query = `SELECT * FROM product WHERE ${conditions.join(
+    ' AND '
+  )} LIMIT 50`;
+
+  // Execute the query
+  connection.query(query, params, (err, rows) => {
+    if (err) {
+      console.error('Error in query', err);
+      return res.status(500).json({ error: 'Error in query' });
+    }
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No products found matching the search criteria' });
+    }
+
+    res.json({ success: true, data: rows });
+  });
+});
+
 // Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
