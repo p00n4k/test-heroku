@@ -33,36 +33,12 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-// // Search by id that contains a string
-// app.get('/products/search/id/:id', (req, res) => {
-//   const id = req.params.id;
-//   connection.query(
-//     'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
-//     ['%' + id + '%'],
-//     (err, rows) => {
-//       if (err) {
-//         console.log('Error in query', err);
-//         res.status(500).send('Error in query');
-//         return;
-//       }
-
-//       if (rows.length === 0) {
-//         res.status(204).send('No products found matching the search criteria');
-//         return;
-//       }
-//       res.send(rows);
-//     }
-//   );
-// });
-
-app.get('/products/search/name/:name', (req, res) => {
-  const name = req.params.name;
-  const { page = 1, limit = 10 } = req.query; // Extract page and limit from query parameters
-  const offset = (page - 1) * limit;
-
+// Search by id that contains a string
+app.get('/products/search/id/:id', (req, res) => {
+  const id = req.params.id;
   connection.query(
-    'SELECT SQL_CALC_FOUND_ROWS * FROM product WHERE product_detail LIKE ? LIMIT ? OFFSET ?',
-    [`%${name}%`, parseInt(limit), parseInt(offset)],
+    'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
+    ['%' + id + '%'],
     (err, rows) => {
       if (err) {
         console.log('Error in query', err);
@@ -70,27 +46,21 @@ app.get('/products/search/name/:name', (req, res) => {
         return;
       }
 
-      connection.query('SELECT FOUND_ROWS() AS total', (err, result) => {
-        if (err) {
-          console.log('Error fetching total rows', err);
-          res.status(500).send('Error fetching total rows');
-          return;
-        }
-
-        const total = result[0].total;
-        res.send(rows);
-      });
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
+      res.send(rows);
     }
   );
 });
 
-app.post('/products/search/id_body', (req, res) => {
-  const { id, page = 1, limit = 10 } = req.body; // Default page = 1, limit = 10
-  const offset = (page - 1) * limit;
-
+// Search by name that contains a string
+app.get('/products/search/name/:name', (req, res) => {
+  const name = req.params.name;
   connection.query(
-    'SELECT SQL_CALC_FOUND_ROWS * FROM product WHERE product_stock_id LIKE ? LIMIT ? OFFSET ?',
-    [`%${id}%`, parseInt(limit), parseInt(offset)],
+    'SELECT * FROM product WHERE product_detail LIKE ? LIMIT 50',
+    ['%' + name + '%'],
     (err, rows) => {
       if (err) {
         console.log('Error in query', err);
@@ -98,46 +68,79 @@ app.post('/products/search/id_body', (req, res) => {
         return;
       }
 
-      connection.query('SELECT FOUND_ROWS() AS total', (err, result) => {
-        if (err) {
-          console.log('Error fetching total rows', err);
-          res.status(500).send('Error fetching total rows');
-          return;
-        }
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
+      res.send(rows);
+    }
+  );
+});
 
-        const total = result[0].total;
-        res.send(rows);
-      });
+// POST request to search by id from request body
+app.post('/products/search/id_body', (req, res) => {
+  const id = req.body.id;
+  connection.query(
+    'SELECT * FROM product WHERE product_stock_id LIKE ? LIMIT 50',
+    ['%' + id + '%'],
+    (err, rows) => {
+      if (err) {
+        console.log('Error in query', err);
+        res.status(500).send('Error in query');
+        return;
+      }
+
+      if (rows.length === 0) {
+        res.status(204).send('No products found matching the search criteria');
+        return;
+      }
+      res.send(rows);
     }
   );
 });
 
 app.post('/products/search', (req, res) => {
-  const { id, name, page = 1, limit = 10 } = req.body; // Default page = 1, limit = 10
-  const offset = (page - 1) * limit;
+  const { id, name } = req.body;
 
-  connection.query(
-    'SELECT SQL_CALC_FOUND_ROWS * FROM product WHERE product_stock_id LIKE ? AND product_detail LIKE ? LIMIT ? OFFSET ?',
-    [`%${id}%`, `%${name}%`, parseInt(limit), parseInt(offset)],
-    (err, rows) => {
-      if (err) {
-        console.log('Error in query', err);
-        res.status(500).send('Error in query');
-        return;
-      }
+  // Validate input
+  if (!id && !name) {
+    return res
+      .status(400)
+      .json({ error: 'At least one of "id" or "name" is required' });
+  }
 
-      connection.query('SELECT FOUND_ROWS() AS total', (err, result) => {
-        if (err) {
-          console.log('Error fetching total rows', err);
-          res.status(500).send('Error fetching total rows');
-          return;
-        }
+  // Build the SQL query dynamically
+  const conditions = [];
+  const params = [];
 
-        const total = result[0].total;
-        res.send(rows);
-      });
+  if (id) {
+    conditions.push('product_stock_id LIKE ?');
+    params.push(`%${id}%`);
+  }
+  if (name) {
+    conditions.push('product_detail LIKE ?');
+    params.push(`%${name}%`);
+  }
+
+  const query = `SELECT * FROM product WHERE ${conditions.join(
+    ' AND '
+  )} LIMIT 50`;
+
+  // Execute the query
+  connection.query(query, params, (err, rows) => {
+    if (err) {
+      console.error('Error in query', err);
+      return res.status(500).json({ error: 'Error in query' });
     }
-  );
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No products found matching the search criteria' });
+    }
+
+    res.send(rows);
+  });
 });
 
 // Start server
