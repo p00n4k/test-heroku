@@ -139,7 +139,7 @@ app.post('/products/search', (req, res) => {
         .json({ message: 'No products found matching the search criteria' });
     }
 
-    res.json({ success: true, data: rows });
+    res.send(rows);
   });
 });
 
