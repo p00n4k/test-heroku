@@ -12,7 +12,7 @@ app.use(express.json()); // Parse JSON bodies
 app.use(morgan('dev')); // HTTP request logger middleware
 app.use(cors()); // Enable CORS for all routes
 
-const connection = mysql.createConnection({
+const connection = mysql.createConnection({ 
   host: process.env.host,
   user: process.env.user,
   password: process.env.password,
